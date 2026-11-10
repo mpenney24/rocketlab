@@ -1,6 +1,9 @@
 # LaunchPad build script (inherited from the previous maintainer)
 # Usage: .\build.ps1 [-Configuration Release]
 
+# Mitch - this file isn't even needed anymore, as it's been replicated in ".github/workflows/ci.yml"
+# MITCH - HOW TO GET THIS TO RUN LOCALLY FOR DEVS???
+
 param(
     [string]$Configuration = "Debug"
 )

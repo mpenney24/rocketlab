@@ -1,5 +1,8 @@
+# Mitch - I have recreated the EXACT executions presented in the build.txt file to make this work as the previous engineer was using it, allowing us to analyse his
+#  process and see if it can be improved at a later date. ACTION: create Jira ticket to scope improving the process of this application.
 name: LaunchPad CI
 
+# Mitch - should create different ci.yml files for different pipelines, as dev branches may not need a full build (whereas main always should); OUT OF SCOPE 
 on:
   push:
     branches: [ main, master ]
@@ -7,16 +10,31 @@ on:
     branches: [ main, master ]
 
 jobs:
+    # Mitch - due to the fact that you don't use GitHub Actions, I elected to keep the job here simple (and multi-staged) rather than multiple jobs with individual
+    #  stages, as the top priority was to get the application working *exactly as it was handed to me* within a short 48-hour window. This was also the CI/CD tool I
+    #  was most familiar with, so rather than waste critical time learning a new one I got this working successfully. Any modifications or migrations over to other 
+    #  tools (such as Jenkins, GitLab CI, etc.) now have a cushioned window which we can correctly scope, estimate, and assign; PRIORITISATION
     build-and-test:
+      # Mitch - ASSUMPTION: LaunchPad is a Windows-based application due to hints left in the code (e.g. Registry.CurrentUser, build.ps1 script executions).
+      #  NOTE: also opted against cross-compilation for this very reason
       name: Build & Test on Windows
+      # Mitch - locking down runner version to prevent runner config drift; DETERMINISM
       runs-on: windows-latest
 
+      # Mitch - creating shortened SHA to inject it (along with CI build runner id) as metadata into builds/filenames; TRACEABILITY
       steps:
+        - name: Short Commit SHA
+          shell: pwsh
+          run: |
+            $shortSha = "${{ github.sha }}".Substring(0, 7)
+            echo "SHORT_SHA=$shortSha" >> $env:GITHUB_ENV
+
         - name: 1. Checkout Code
-          uses: actions/checkout@v4
+          uses: actions/checkout@v5
 
         - name: 2. Set up .NET SDK
-          uses: actions/setup-dotnet@v4
+          uses: actions/setup-dotnet@v5
+          # Mitch - locking down SDK version to prevent tool-chain drift; DETERMINISM
           with:
             dotnet-version: '10.0.x'
 
@@ -33,7 +51,7 @@ jobs:
           run: dotnet publish src/LaunchPad.Cli/LaunchPad.Cli.csproj -c Release -o ./publish-output --no-build /p:LP_CI_BUILD_ID=${{ github.run_number }} /p:LP_GIT_COMMIT_SHA=${{ github.sha }}
 
         - name: 7. Upload Build Artifacts
-          uses: actions/upload-artifact@v4
+          uses: actions/upload-artifact@v5
           with:
-            name: LaunchPad-Windows-${{ github.run_number }}-${{ github.sha }}
+            name: LaunchPad-Windows-LP_CI_BUILD_ID-${{ github.run_number }}-LP_GIT_COMMIT_SHA-${{ env.SHORT_SHA }}
             path: ./publish-output/
