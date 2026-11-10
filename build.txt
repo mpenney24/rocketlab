@@ -1,0 +1,20 @@
+# LaunchPad build script (inherited from the previous maintainer)
+# Usage: .\build.ps1 [-Configuration Release]
+
+param(
+    [string]$Configuration = "Debug"
+)
+
+$dotnet = "C:\Program Files\dotnet\dotnet.exe"
+$repo   = "C:\src\LaunchPad"
+$drop   = "\\buildshare01\drops\LaunchPad"
+
+Set-Location $repo
+
+& $dotnet restore LaunchPad.sln
+& $dotnet build LaunchPad.sln -c $Configuration --no-restore
+& $dotnet test tests\LaunchPad.Tests\LaunchPad.Tests.csproj -c $Configuration --no-build
+
+# publish and drop
+& $dotnet publish src\LaunchPad.Cli\LaunchPad.Cli.csproj -c $Configuration -o "$repo\out"
+Copy-Item "$repo\out\*" $drop -Recurse -Force

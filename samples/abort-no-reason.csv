@@ -1,0 +1,6 @@
+time_s,velocity_ms,altitude_m
+0,0,0
+20,330,400
+40,660,1600
+60,990,3600
+ABORT
