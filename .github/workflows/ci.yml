@@ -1,0 +1,28 @@
+name: LaunchPad - GitHub Actions Basic Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-test-package:
+    name: LaunchPad Basic Pipeline (Lint, Test & Package via Docker)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 1. Lint Check
+        run: docker build --target lint .
+
+      - name: 2. Unit Tests
+        run: docker build --target test .
+
+      - name: 3. Build & Extract Binaries
+        run: |
+          docker build --target publish \
+            --build-arg LP_CI_BUILD_ID=${{ github.run_number }} \
+            --build-arg LP_GIT_COMMIT_SHA=${{ github.sha }} \
+            --output type=local,dest=./publish-output \
+            .
