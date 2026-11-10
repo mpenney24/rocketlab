@@ -9,6 +9,7 @@ public static class MissionControlUploader
     public static string Upload(string url, FlightRecord flight)
     {
         var json = JsonConvert.SerializeObject(flight);
+        // Mitch - NEED TO CHANGE THIS?
         using var client = new WebClient();
         client.Headers[HttpRequestHeader.ContentType] = "application/json";
         return client.UploadString(url, json);

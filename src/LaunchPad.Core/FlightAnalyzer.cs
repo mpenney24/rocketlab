@@ -5,11 +5,15 @@ public static class FlightAnalyzer
     /// <summary>One-line debrief for a flight, for the post-flight report.</summary>
     public static string Summarize(FlightRecord flight)
     {
-        int unused;
+        // Mitch - found due to linting error! Removed.
+        //int unused;
 
         if (flight.Aborted)
         {
-            return $"Flight aborted: {flight.AbortReason.ToUpperInvariant()}";
+            // Mitch - "Dereference of a possibly null reference (CS8602)." error fix - FlightSample.cs data modelling likely needs modifying to create
+            //  link between Aborted=True and AbortReason; this conditional will suffice for now
+            // return $"Flight aborted: {flight.AbortReason?.ToUpperInvariant()}";
+            return $"Flight aborted: {flight.AbortReason?.ToUpperInvariant() ?? "No reason provided"}";
         }
 
         if (flight.Samples.Count == 0)
