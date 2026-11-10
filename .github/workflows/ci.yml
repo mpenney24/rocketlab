@@ -1,7 +1,5 @@
-name: LaunchPad - GitHub Actions Basic Pipeline
+name: LaunchPad CI
 
-# Mitch - linting should happen for the *FULL* code base on push, whereas pull_request should lint *changes only*; OOS for this task? [UPDATE: yes it's OOS]
-#  ACTION: severity low, priority medium - once codebase is secure, fix this to allow smoother concurrent development
 on:
   push:
     branches: [ main, master ]
@@ -9,34 +7,33 @@ on:
     branches: [ main, master ]
 
 jobs:
-  build-test-package:
-    name: LaunchPad Basic Pipeline (Lint, Test & Package via Docker)
-    # Mitch - ubuntu-latest is cheaper and quicker than windows-latest, and using containers means the project build inside is unaffected ( EDIT THIS)
-    runs-on: windows-2025
-    steps:
-      - name: 1. Checkout Code
-        uses: actions/checkout@v4
+    build-and-test:
+      name: Build & Test on Windows
+      runs-on: windows-latest
 
-      - name: 2. Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      steps:
+        - name: 1. Checkout Code
+          uses: actions/checkout@v4
 
-      - name: 3. Build, Test, and Export Binaries (Cached)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          target: export
-          # Mitch - GitHub Actions cache backend persists Windows layers between runs, as the Docker image is quite large and downloads 1.5gb each time!
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          outputs: type=local,dest=./publish-output
-          # Mitch - passing metadata into projects to be built with tracing
-          build-args: |
-            LP_CI_BUILD_ID=${{ github.run_number }}
-            LP_GIT_COMMIT_SHA=${{ github.sha }}
+        - name: 2. Set up .NET SDK
+          uses: actions/setup-dotnet@v4
+          with:
+            dotnet-version: '10.0.x'
 
-      - name: 4. Upload to GitHub Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-        # Mitch - apply tracing to produced binary names too
-          name: LaunchPad-${{ github.run_number }}-${{ github.sha }}
-          path: ./publish-output/
+        - name: 3. Restore Dependencies
+          run: dotnet restore LaunchPad.sln
+
+        - name: 4. Build Solution
+          run: dotnet build LaunchPad.sln -c Release --no-restore /p:LP_CI_BUILD_ID=${{ github.run_number }} /p:LP_GIT_COMMIT_SHA=${{ github.sha }}
+
+        - name: 5. Run Unit Tests
+          run: dotnet test LaunchPad.sln -c Release --no-build
+
+        - name: 6. Publish Release Binaries
+          run: dotnet publish src/LaunchPad.Cli/LaunchPad.Cli.csproj -c Release -o ./publish-output --no-build /p:LP_CI_BUILD_ID=${{ github.run_number }} /p:LP_GIT_COMMIT_SHA=${{ github.sha }}
+
+        - name: 7. Upload Build Artifacts
+          uses: actions/upload-artifact@v4
+          with:
+            name: LaunchPad-Windows-Binaries
+            path: ./publish-output/

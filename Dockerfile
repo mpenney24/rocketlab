@@ -15,7 +15,6 @@ ARG LP_GIT_COMMIT_SHA=local
 COPY . .
 
 RUN dotnet restore LaunchPad.sln
-# Mitch - cache nuget packages?
 
 # ==========================================
 # STAGE 2: Lint
@@ -32,7 +31,7 @@ RUN dotnet format --verify-no-changes --severity error
 # ==========================================
 # STAGE 3: Build
 # ==========================================
-FROM base AS build
+FROM base AS build 
 RUN dotnet build LaunchPad.sln -c Release \
     /p:AssemblyVersion=1.0.0.${LP_CI_BUILD_ID} \
     /p:InformationalVersion=${LP_GIT_COMMIT_SHA} \
