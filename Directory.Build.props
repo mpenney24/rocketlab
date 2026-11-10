@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <!-- Mitch - added these global vars so that builds can be tagged with traceability metadata -->
+    <!-- Mitch - added these global vars so that code version can be tagged with traceability metadata -->
     <AssemblyVersion>1.0.$(LP_CI_BUILD_ID)</AssemblyVersion>
     <InformationalVersion>$(LP_GIT_COMMIT_SHA)</InformationalVersion>
   </PropertyGroup>
