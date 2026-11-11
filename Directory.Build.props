@@ -17,6 +17,8 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <!-- 3. have 0% tolerance for any warnings that appear, as it would indicate something has shifted since last successful build -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- 4. guarantees restoration only uses self-contained cached artifacts -->
+    <RestorePackagesOffline>true</RestorePackagesOffline>
 
     <!-- Mitch - produces identical output binaries based on the source code ONLY, not machine built on, local path on machine, time of day, etc. -->
     <Deterministic>true</Deterministic>

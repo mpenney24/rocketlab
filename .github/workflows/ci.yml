@@ -81,10 +81,10 @@ jobs:
           run: dotnet build LaunchPad.sln -c Release --no-restore /p:LP_CI_BUILD_ID=${{ github.run_number }} /p:LP_GIT_COMMIT_SHA=${{ github.sha }} /p:LP_GIT_BRANCH_NAME=${{ env.BRANCH_NAME }}
 
         - name: 5. Run Unit Tests
-          run: dotnet test LaunchPad.sln -c Release --no-build
+          run: dotnet test LaunchPad.sln -c Release --no-restore --no-build
 
         - name: 6. Publish Release Binaries
-          run: dotnet publish src/LaunchPad.Cli/LaunchPad.Cli.csproj -c Release -o ./publish-output --no-build /p:LP_CI_BUILD_ID=${{ github.run_number }} /p:LP_GIT_COMMIT_SHA=${{ github.sha }} /p:LP_GIT_BRANCH_NAME=${{ env.BRANCH_NAME }}
+          run: dotnet publish src/LaunchPad.Cli/LaunchPad.Cli.csproj -c Release -o ./publish-output --no-restore --no-build /p:LP_CI_BUILD_ID=${{ github.run_number }} /p:LP_GIT_COMMIT_SHA=${{ github.sha }} /p:LP_GIT_BRANCH_NAME=${{ env.BRANCH_NAME }}
 
         - name: 7. Upload Build Artifacts
           uses: actions/upload-artifact@v7.0.0
