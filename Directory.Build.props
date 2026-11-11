@@ -1,15 +1,30 @@
 <Project>
   <PropertyGroup>
     <!-- Mitch - added these global vars so that code version can be tagged with traceability metadata when using CLI command 'version' -->
-
     <BuildId>$([MSBuild]::ValueOrDefault('$(LP_CI_BUILD_ID)', '0'))</BuildId>
     <CommitSha>$([MSBuild]::ValueOrDefault('$(LP_GIT_COMMIT_SHA)', 'SHA'))</CommitSha>
     <BranchName>$([MSBuild]::ValueOrDefault('$(LP_GIT_BRANCH_NAME)', 'local'))</BranchName>
-
+    <!-- Mitch - provides exact timestamp info for devs, which is invaluable when building locally (as env vars above are defaulted) -->
     <BuildTimestamp>$([System.DateTime]::Now.ToString("yyyy-MM-ddTHH:mm:ssK"))</BuildTimestamp>
 
     <AssemblyVersion>1.0.$(BuildId)</AssemblyVersion>
     <InformationalVersion>1.0.$(BuildId)-$(BranchName)+$(CommitSha).$(BuildTimestamp)</InformationalVersion>
+
+    <!-- Mitch - these properties do a number of things: -->
+    <!-- 1. extracts GitHub URL so that it's easy to find the code online -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <!-- 2. any generated files from the build are preserved, assisting very low-level debug efforts if no solution can be found elsewhere -->
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <!-- 3. have 0% tolerance for any warnings that appear, as it would indicate something has shifted since last successful build -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- Mitch - produces identical output binaries based on the source code ONLY, not machine built on, local path on machine, time of day, etc. -->
+    <Deterministic>true</Deterministic>
+    <DeterministicSourcePaths>true</DeterministicSourcePaths>
+
+    <!-- Mitch - checks nuget deps for known vulnerabilities in not only our own deps but any deps in *those* too; SECURITY -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
 
   </PropertyGroup>
 </Project>

@@ -12,8 +12,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Serilog" Version="4.*" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="6.*" />
+    <!-- Mitch - see "Directory.Packages.props" for centralised version control; MAINTAINABILITY -->
+    <!--   ALSO, wildcards may introduce drift; replacing with static minor versions -->
+    <!-- <PackageReference Include="Serilog" Version="4.*" />
+         <PackageReference Include="Serilog.Sinks.Console" Version="6.*" /> -->
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Sinks.Console" />
   </ItemGroup>
 
   <ItemGroup>

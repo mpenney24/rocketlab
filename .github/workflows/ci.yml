@@ -1,10 +1,24 @@
 # Mitch - I have recreated the EXACT executions presented in the build.txt file to make this work as the previous engineer was using it, allowing us to analyse his
 #  process and see if it can be improved at a later date. 
 #    ACTION: severity low, priority medium - create Jira ticket to scope improving the process of this app
+
+# NOTE: apparently, GitHub Action runners are updated *automatically*, meaning there's little we can do to control these versions. This is one major downside of
+#  cloud-based runners, the solution being that we self-host the runners in future.
+# DECISION: OUT OF SCOPE for this recreation task - let's keep infrastructure overhead to a minimum for now
+# ACTION: severity medium, priority medium - not as imperative for Windows software as for Linux vehicle software, but should be done soon
 name: LaunchPad CI
 
+# Mitch - these properties do a number of things:
+env:
+  # 1. prevent any usage data from being sent to Microsoft (reducing outbound network requests which might affect build); PRIVACY, RELIABILITY
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  # 2. remove generated ident to keep logs clear of mess; VISIBILITY
+  DOTNET_NOLOGO: true
+  # 3. GitHub Actions only uses fresh runners, so no need to cache/pre-populate for future runs
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
 # Mitch - should create different ci.yml files for different pipelines, as dev branches may not need a full build (whereas main always should); 
-#  DECISION: OUT OF SCOPE for this recreation task - implement when multiple devs are expected to work on this app (but block pushes to Main when recreate complete!)
+#  DECISION: OUT OF SCOPE for this recreation task - implement when multiple devs are expected to work on this app (but block pushes to Main when current complete!)
 on:
   push:
     branches: [ main, master ]
@@ -17,10 +31,15 @@ jobs:
     #  CI/CD tool I am most familiar with, so rather than waste critical time learning a new one I got this working successfully. Any modifications or migrations 
     #  over to other tools (such as Jenkins, GitLab CI, etc.) now have a cushioned window which we can correctly scope, estimate, and assign; PRIORITISATION
     build-and-test:
-      # Mitch - ASSUMPTION: LaunchPad is a Windows-based application due to hints left in the code (e.g. "Registry.CurrentUser", "build.ps1" script).
-      #  DECISION: also opted against cross-compilation for this very reason
+      # Mitch - ASSUMPTION: LaunchPad is a Windows-based application due to hints left in the code (e.g. "Registry.CurrentUser", "build.ps1" script) so we'll focus on
+      #  that for now.
+      #  DECISION: also opted against cross-compilation for this very reason, but 48-hour time constraint too
       name: Build & Test on Windows
       # Mitch - locking down runner version to prevent config drift; DETERMINISM
+      #  NOTE: my research tells me that this also updates the OS version used in the background, which (like the runners updating) is something we don't want.
+      #    However, current software-layer isolation settings help freeze everything we use (see "Directory.Packages.props", "Directory.Build.props", "global.json")
+      #  DECISION: OUT OF SCOPE for this recreation task - combine with runner task (above)
+      #  ACTION: severity medium, priority medium - create Jira ticket for this and add to next sprint
       runs-on: windows-2025
 
       # Mitch - creating shortened SHA to inject it (along with branch name, CI build runner id) as metadata into builds/filenames; TRACEABILITY
@@ -40,14 +59,19 @@ jobs:
             echo "BRANCH_NAME=$branch" >> $env:GITHUB_ENV
 
         - name: 1. Checkout Code
-          # Mitch - opted for using pinned GitHub Actions plugins to reduce boilterplate code (and make my changes more obvious/workflow more clear); REPEATABILITY
+          # Mitch - opted for using pinned (i.e. minor ver included) GitHub Actions plugins to reduce boilterplate code (and make my changes more obvious/workflow 
+          #  more clear); REPEATABILITY
           uses: actions/checkout@v5.0.0
 
         - name: 2. Set up .NET SDK
           uses: actions/setup-dotnet@v5.0.0
-          # Mitch - pinned SDK version to prevent tool-chain drift; DETERMINISM
+          # Mitch - pinned SDK version to prevent tool-chain drift (see "global.json" for config which makes sure the Windows OS downloads this version); DETERMINISM
           with:
-            dotnet-version: '10.0.102'
+            dotnet-version: '10.0.112'
+            # Mitch - caching toolchains for future builds to use; EFFICIENCY
+            cache: true
+            # Mitch - uses .sln to calculate cache key, meaning any deps changes invalidates the cache and fetches fresh; CACHE INVALIDAION
+            cache-dependency-path: LaunchPad.sln
 
         - name: 3. Restore Dependencies
           run: dotnet restore LaunchPad.sln
@@ -64,5 +88,5 @@ jobs:
         - name: 7. Upload Build Artifacts
           uses: actions/upload-artifact@v5.0.0
           with:
-            name: LaunchPad-Windows-BRANCH-${{ env.BRANCH_NAME }}-LP_CI_BUILD_ID-${{ github.run_number }}-LP_GIT_COMMIT_SHA-${{ env.SHORT_SHA }}
+            name: LaunchPad-Windows-LP_GIT_BRANCH_NAME-${{ env.BRANCH_NAME }}-LP_CI_BUILD_ID-${{ github.run_number }}-LP_GIT_COMMIT_SHA-${{ env.SHORT_SHA }}
             path: ./publish-output/

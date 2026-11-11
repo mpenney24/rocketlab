@@ -10,9 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Mitch - fixed as part of linting high security vulnerability error -->
+    <!-- Mitch - fixed as part of linting high security vulnerability error by bumping from "12.0.3" to "13.0.3" -->
+    <!-- UPDATE: see "Directory.Packages.props" for centralised version control; MAINTAINABILITY  -->
     <!--<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />-->
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
 
 </Project>
