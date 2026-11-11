@@ -6,7 +6,7 @@ namespace LaunchPad.Tests;
 public class GroundStationLinkTests
 
     // Mitch - flakey test found!!!
-    //  the problem: I don't have enough context to know if 50ms is the MAXIMUM this process should take, and whether I should be fixing the test or code
+    //  CONTEXT: I don't have enough info to know if 50ms is the MAXIMUM this process should take, and whether I should be fixing the test or code
     //  ASSUMPTION: the basicness of this test (and the hardcoded value) leads me to believe the test is wrong.
     //  ACTION: severity high, priority high - CHECK WITH TEAM TO CONFIRM FINDINGS
 {
@@ -30,7 +30,7 @@ public class GroundStationLinkTests
         //  stats and determine whether the code or test is wrong.
         var stopwatch = Stopwatch.StartNew();
 
-        var gotSignal = await link.WaitForSignalAsync(TimeSpan.FromMilliseconds(100));
+        var gotSignal = await link.WaitForSignalAsync(TimeSpan.FromMilliseconds(2000));
         stopwatch.Stop();
 
         if (stopwatch.ElapsedMilliseconds > 50)

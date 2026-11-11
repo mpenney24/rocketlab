@@ -27,20 +27,20 @@ on:
     branches: [ main, master ]
 
 jobs:
-    # Mitch - ASSUMPTION: due to the fact that you don't use GitHub Actions, I elected to keep the job here simple (and multi-staged) rather than multiple jobs with 
+    # Mitch - ASSUMPTION: due to the fact that you don't use GitHub Actions, I elected to keep the job here simple (and single-staged) rather than multiple jobs with 
     #  individual stages, as the top priority was to get the application working *exactly as it was handed to me* within a short 48-hour window. This was also the 
     #  CI/CD tool I am most familiar with, so rather than waste critical time learning a new one I got this working successfully. Any modifications or migrations 
-    #  over to other tools (such as Jenkins, GitLab CI, etc.) now have a cushioned window which we can correctly scope, estimate, and assign; PRIORITISATION
+    #  to other tools (such as Jenkins, GitLab CI) now have a cushioned window in which we can correctly scope, estimate, and assign the task; PRIORITISATION
     build-and-test:
       # Mitch - ASSUMPTION: LaunchPad is a Windows-based application due to hints left in the code (e.g. "Registry.CurrentUser", "build.ps1" script) so we'll focus on
       #  that for now.
-      #  DECISION: also opted against cross-compilation for this very reason, but 48-hour time constraint too
+      #  DECISION: also opted against cross-compilation for this very reason, but 48-hour time constraint impacted that too
       name: Build & Test on Windows
       # Mitch - locking down runner version to prevent config drift; DETERMINISM
-      #  NOTE: my research tells me that this also updates the OS version used in the background, which (like the runners updating) is something we don't want.
+      #  NOTE: my research tells me that Microsoft updates the OS version used in the background, which (like the GitHub runners updating) is something we don't want.
       #    However, current software-layer isolation settings help freeze everything we use (see "Directory.Packages.props", "Directory.Build.props", "global.json")
-      #  DECISION: OUT OF SCOPE for this recreation task - combine with runner task (above)
-      #  ACTION: severity medium, priority medium - create Jira ticket for this and add to next sprint
+      #  DECISION: OUT OF SCOPE for this recreation task - combine with runner task (above) to address runner/OS config drifts
+      #  ACTION: severity high, priority medium - create Jira ticket for this and add to next sprint
       runs-on: windows-2025
 
       # Mitch - creating shortened SHA to inject it (along with branch name, CI build runner id) as metadata into builds/filenames; TRACEABILITY
@@ -52,7 +52,7 @@ jobs:
             echo "SHORT_SHA=$shortSha" >> $env:GITHUB_ENV
 
         - name: 1. Checkout Code
-          # Mitch - opted for using pinned (i.e. minor ver included) GitHub Actions plugins to reduce boilterplate code (and make my changes more obvious/workflow 
+          # Mitch - opted for using pinned (i.e. minor ver) GitHub Actions plugins to reduce drift and boilterplate code (and make my changes more obvious/workflow 
           #  more clear); REPEATABILITY
           uses: actions/checkout@v7.0.1
 

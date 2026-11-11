@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <!-- Mitch - ASSUMPTION: as we know this is Windows software, we can lock down Roslyn compiler warnings appearing in the build step of the pipeline
-                  by updating the target framework and reducing noise, leaving space for more critical errors to be seen -->
+          by updating the target framework and reducing noise, leaving space for more critical errors to be seen -->
     <!-- <TargetFramework>net10.0</TargetFramework> -->
     <TargetFramework>net10.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <!-- Mitch - see "Directory.Packages.props" for centralised version control; MAINTAINABILITY -->
-    <!--   ALSO, wildcards may introduce drift; replacing with static minor versions -->
+    <!--   ALSO, wildcards may introduce drift; replacing them with static minor versions -->
     <!-- <PackageReference Include="Serilog" Version="4.*" />
          <PackageReference Include="Serilog.Sinks.Console" Version="6.*" /> -->
     <PackageReference Include="Serilog" />

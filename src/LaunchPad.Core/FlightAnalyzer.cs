@@ -10,7 +10,7 @@ public static class FlightAnalyzer
 
         if (flight.Aborted)
         {
-            // Mitch - "Dereference of a possibly null reference (CS8602)." error fix - FlightSample.cs data modelling likely needs modifying to create
+            // Mitch - "Dereference of a possibly null reference (CS8602)." error fix - FlightSample.cs data modelling likely needs updating to create
             //  link between Aborted=True and AbortReason; this conditional will suffice for now
             // return $"Flight aborted: {flight.AbortReason?.ToUpperInvariant()}";
             return $"Flight aborted: {flight.AbortReason?.ToUpperInvariant() ?? "No reason provided"}";

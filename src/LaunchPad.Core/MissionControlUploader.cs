@@ -8,7 +8,7 @@ namespace LaunchPad.Core;
 public static class MissionControlUploader
 
     // Mitch - wasn't technically necessary to fix "new WebClient() deprecated" error, but it was the last build warning appearing in the logs 
-    //  and part of a Build Engineer's job is to clean up builds and reduce noise (plus, it was quick)
+    //  and part of a Build Engineer's job is to clean up builds and reduce noise (plus, it was quick!)
 {
     // public static string Upload(string url, FlightRecord flight)
     // {

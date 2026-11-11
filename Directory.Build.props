@@ -7,8 +7,11 @@
     <!-- Mitch - provides exact timestamp info for devs, which is invaluable when building locally (as env vars above are defaulted) -->
     <BuildTimestamp>$([System.DateTime]::Now.ToString("yyyy-MM-ddTHH:mm:ssK"))</BuildTimestamp>
 
+    <!-- I'm adding the commit sha information myself, don't let .NET auto-generate -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+
     <AssemblyVersion>1.0.$(BuildId)</AssemblyVersion>
-    <InformationalVersion>1.0.$(BuildId)-$(BranchName)+$(CommitSha).$(BuildTimestamp)</InformationalVersion>
+    <InformationalVersion>1.0.$(BuildId)-$(BranchName)-$(CommitSha)-$(BuildTimestamp)</InformationalVersion>
 
     <!-- Mitch - these properties do a number of things: -->
     <!-- 1. extracts GitHub URL so that it's easy to find the code online -->
