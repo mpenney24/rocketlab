@@ -1,0 +1,76 @@
+# Mitch - I have recreated the EXACT executions presented in the build.txt file to make this work as the previous engineer was using it, allowing us to analyse his
+#  process and see if it can be improved at a later date. 
+#    ACTION: severity low, priority medium - create Jira ticket to scope improving the process of this app
+
+# NOTE: apparently, GitHub Action runners are updated *automatically*, meaning there's little we can do to control these versions. This is one major downside of
+#  cloud-based runners, the solution being that we self-host the runners in future.
+# DECISION: OUT OF SCOPE for this recreation task - let's keep infrastructure overhead to a minimum for now
+# ACTION: severity medium, priority medium - not as imperative for Windows software as for Linux vehicle software, but should be done soon
+name: LaunchPad CI - Docker
+
+# Mitch - these properties do a number of things:
+env:
+  # 1. prevent any usage data from being sent to Microsoft (reducing outbound network requests which might affect build); PRIVACY, RELIABILITY
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  # 2. remove generated ident to keep logs clear of mess; VISIBILITY
+  DOTNET_NOLOGO: true
+  # 3. GitHub Actions only uses fresh runners, so no need to cache/pre-populate for future runs
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+
+# Mitch - should create different ci.yml files for different pipelines, as dev branches may not need a full build (whereas main always should); 
+#  DECISION: OUT OF SCOPE for this recreation task - implement when multiple devs are expected to work on this app (but block pushes to Main when current complete!)
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+    # Mitch - ASSUMPTION: due to the fact that you don't use GitHub Actions, I elected to keep the job here simple (and multi-staged) rather than multiple jobs with 
+    #  individual stages, as the top priority was to get the application working *exactly as it was handed to me* within a short 48-hour window. This was also the 
+    #  CI/CD tool I am most familiar with, so rather than waste critical time learning a new one I got this working successfully. Any modifications or migrations 
+    #  over to other tools (such as Jenkins, GitLab CI, etc.) now have a cushioned window which we can correctly scope, estimate, and assign; PRIORITISATION
+    build-and-test:
+      # Mitch - ASSUMPTION: LaunchPad is a Windows-based application due to hints left in the code (e.g. "Registry.CurrentUser", "build.ps1" script) so we'll focus on
+      #  that for now.
+      #  DECISION: also opted against cross-compilation for this very reason, but 48-hour time constraint too
+      name: Build & Test on Windows - Docker version
+      # Mitch - locking down runner version to prevent config drift; DETERMINISM
+      #  NOTE: my research tells me that this also updates the OS version used in the background, which (like the runners updating) is something we don't want.
+      #    However, current software-layer isolation settings help freeze everything we use (see "Directory.Packages.props", "Directory.Build.props", "global.json")
+      #  DECISION: OUT OF SCOPE for this recreation task - combine with runner task (above)
+      #  ACTION: severity medium, priority medium - create Jira ticket for this and add to next sprint
+      runs-on: windows-2025
+
+      # Mitch - creating shortened SHA to inject it (along with branch name, CI build runner id) as metadata into builds/filenames; TRACEABILITY
+      steps:
+        - name: 0. Generate Env Vars
+          shell: pwsh
+          run: |
+            $shortSha = "${{ github.sha }}".Substring(0, 7)
+            echo "SHORT_SHA=$shortSha" >> $env:GITHUB_ENV
+
+        - name: 1. Checkout Code
+          uses: actions/checkout@v7.0.1
+
+        - name: 2. Build Docker Image
+          run: |
+            docker build `
+              --build-arg LP_CI_BUILD_ID=${{ github.run_number }} `
+              --build-arg LP_GIT_COMMIT_SHA=${{ env.SHORT_SHA }} `
+              --build-arg LP_GIT_BRANCH_NAME=${{ env.BRANCH_NAME }} `
+              -t launchpad-ci-docker:${{ env.BRANCH_NAME }}-${{ github.run_number }}-${{ env.SHORT_SHA }} .
+
+        - name: 3. Extract Binaries from Docker
+          run: |
+            docker create --name temp-ext launchpad-ci-docker:${{ env.BRANCH_NAME }}-${{ github.run_number }}-${{ env.SHORT_SHA }}
+            New-Item -ItemType Directory -Force -Path .\artifacts
+            docker cp temp-ext:/app/out .\artifacts
+            docker rm temp-ext
+
+        - name: 4. Upload Build Artifacts
+          uses: actions/upload-artifact@v7.0.0
+          with:
+            name: LaunchPad-Docker-LP_GIT_BRANCH_NAME-${{ env.BRANCH_NAME }}-LP_CI_BUILD_ID-${{ github.run_number }}-LP_GIT_COMMIT_SHA-${{ env.SHORT_SHA }}
+            path: artifacts/

@@ -16,6 +16,7 @@ env:
   DOTNET_NOLOGO: true
   # 3. GitHub Actions only uses fresh runners, so no need to cache/pre-populate for future runs
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
 
 # Mitch - should create different ci.yml files for different pipelines, as dev branches may not need a full build (whereas main always should); 
 #  DECISION: OUT OF SCOPE for this recreation task - implement when multiple devs are expected to work on this app (but block pushes to Main when current complete!)
@@ -44,19 +45,11 @@ jobs:
 
       # Mitch - creating shortened SHA to inject it (along with branch name, CI build runner id) as metadata into builds/filenames; TRACEABILITY
       steps:
-        - name: Env Vars
+        - name: 0. Generate Env Vars
           shell: pwsh
           run: |
             $shortSha = "${{ github.sha }}".Substring(0, 7)
-
-            # head_ref for prs, ref_name for main
-            $branch = "${{ github.head_ref }}"
-            if (-not $branch) {
-                $branch = "${{ github.ref_name }}"
-            }
-
             echo "SHORT_SHA=$shortSha" >> $env:GITHUB_ENV
-            echo "BRANCH_NAME=$branch" >> $env:GITHUB_ENV
 
         - name: 1. Checkout Code
           # Mitch - opted for using pinned (i.e. minor ver included) GitHub Actions plugins to reduce boilterplate code (and make my changes more obvious/workflow 

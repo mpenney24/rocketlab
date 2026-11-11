@@ -28,5 +28,12 @@
     <NuGetAudit>true</NuGetAudit>
     <NuGetAuditMode>all</NuGetAuditMode>
 
+    <!-- Mitch - uses latest compiler checks for potential vulnerabilities/performance traps and linting -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+
+    <!-- Mitch - if anything drifts/shifts since our last clean build, this will indicate we didn't lock everything down as well as we'd hoped -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
   </PropertyGroup>
 </Project>

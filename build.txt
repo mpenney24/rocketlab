@@ -4,7 +4,7 @@
 # Mitch - this file isn't needed anymore, as it's been replicated in ".github/workflows/ci.yml"
 #  ASSUMPTION: the purpose of this assessment was to focus on recreating the dev's process in an automated fashion rather than improve it; improvements can be
 #   properly ticketed/estimated once we have discussed with the team what the next steps are, instead of blindly hacking away at code
-# MITCH - HOW TO GET THIS TO RUN LOCALLY FOR DEVS???
+#  ACTION: delete this file
 
 param(
     [string]$Configuration = "Debug"

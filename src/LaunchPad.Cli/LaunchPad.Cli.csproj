@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <!-- Mitch - ASSUMTPION: as we know this is Windows software, we can lock down Roslyn compiler warnings appearing in the build step of the pipeline
+    <!-- Mitch - ASSUMPTION: as we know this is Windows software, we can lock down Roslyn compiler warnings appearing in the build step of the pipeline
                   by updating the target framework and reducing noise, leaving space for more critical errors to be seen -->
     <!-- <TargetFramework>net10.0</TargetFramework> -->
     <TargetFramework>net10.0-windows</TargetFramework>
