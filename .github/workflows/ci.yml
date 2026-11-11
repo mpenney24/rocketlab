@@ -1,8 +1,10 @@
 # Mitch - I have recreated the EXACT executions presented in the build.txt file to make this work as the previous engineer was using it, allowing us to analyse his
-#  process and see if it can be improved at a later date. ACTION: create Jira ticket to scope improving the process of this application.
+#  process and see if it can be improved at a later date. 
+#    ACTION: severity low, priority medium - create Jira ticket to scope improving the process of this app
 name: LaunchPad CI
 
-# Mitch - should create different ci.yml files for different pipelines, as dev branches may not need a full build (whereas main always should); OUT OF SCOPE 
+# Mitch - should create different ci.yml files for different pipelines, as dev branches may not need a full build (whereas main always should); 
+#  DECISION: OUT OF SCOPE for this recreation task - implement when multiple devs are expected to work on this app (but block pushes to Main when recreate complete!)
 on:
   push:
     branches: [ main, master ]
@@ -10,26 +12,35 @@ on:
     branches: [ main, master ]
 
 jobs:
-    # Mitch - due to the fact that you don't use GitHub Actions, I elected to keep the job here simple (and multi-staged) rather than multiple jobs with individual
-    #  stages, as the top priority was to get the application working *exactly as it was handed to me* within a short 48-hour window. This was also the CI/CD tool I
-    #  was most familiar with, so rather than waste critical time learning a new one I got this working successfully. Any modifications or migrations over to other 
-    #  tools (such as Jenkins, GitLab CI, etc.) now have a cushioned window which we can correctly scope, estimate, and assign; PRIORITISATION
+    # Mitch - ASSUMPTION: due to the fact that you don't use GitHub Actions, I elected to keep the job here simple (and multi-staged) rather than multiple jobs with 
+    #  individual stages, as the top priority was to get the application working *exactly as it was handed to me* within a short 48-hour window. This was also the 
+    #  CI/CD tool I am most familiar with, so rather than waste critical time learning a new one I got this working successfully. Any modifications or migrations 
+    #  over to other tools (such as Jenkins, GitLab CI, etc.) now have a cushioned window which we can correctly scope, estimate, and assign; PRIORITISATION
     build-and-test:
-      # Mitch - ASSUMPTION: LaunchPad is a Windows-based application due to hints left in the code (e.g. Registry.CurrentUser, build.ps1 script executions).
-      #  NOTE: also opted against cross-compilation for this very reason
+      # Mitch - ASSUMPTION: LaunchPad is a Windows-based application due to hints left in the code (e.g. "Registry.CurrentUser", "build.ps1" script).
+      #  DECISION: also opted against cross-compilation for this very reason
       name: Build & Test on Windows
       # Mitch - locking down runner version to prevent runner config drift; DETERMINISM
       runs-on: windows-latest
 
-      # Mitch - creating shortened SHA to inject it (along with CI build runner id) as metadata into builds/filenames; TRACEABILITY
+      # Mitch - creating shortened SHA to inject it (along with branch name, CI build runner id) as metadata into builds/filenames; TRACEABILITY
       steps:
-        - name: Short Commit SHA
+        - name: Env Vars
           shell: pwsh
           run: |
             $shortSha = "${{ github.sha }}".Substring(0, 7)
+
+            # head_ref for prs, ref_name for main
+            $branch = "${{ github.head_ref }}"
+            if (-not $branch) {
+                $branch = "${{ github.ref_name }}"
+            }
+
             echo "SHORT_SHA=$shortSha" >> $env:GITHUB_ENV
+            echo "BRANCH_NAME=$branch" >> $env:GITHUB_ENV
 
         - name: 1. Checkout Code
+          # Mitch - opted for using GitHub Actions plugins to reduce boilterplate code (and make my changes more obvious/workflow more clear)
           uses: actions/checkout@v5
 
         - name: 2. Set up .NET SDK
@@ -42,16 +53,16 @@ jobs:
           run: dotnet restore LaunchPad.sln
 
         - name: 4. Build Solution
-          run: dotnet build LaunchPad.sln -c Release --no-restore /p:LP_CI_BUILD_ID=${{ github.run_number }} /p:LP_GIT_COMMIT_SHA=${{ github.sha }}
+          run: dotnet build LaunchPad.sln -c Release --no-restore /p:LP_CI_BUILD_ID=${{ github.run_number }} /p:LP_GIT_COMMIT_SHA=${{ github.sha }} /p:LP_GIT_BRANCH_NAME=${{ env.BRANCH_NAME }}
 
         - name: 5. Run Unit Tests
           run: dotnet test LaunchPad.sln -c Release --no-build
 
         - name: 6. Publish Release Binaries
-          run: dotnet publish src/LaunchPad.Cli/LaunchPad.Cli.csproj -c Release -o ./publish-output --no-build /p:LP_CI_BUILD_ID=${{ github.run_number }} /p:LP_GIT_COMMIT_SHA=${{ github.sha }}
+          run: dotnet publish src/LaunchPad.Cli/LaunchPad.Cli.csproj -c Release -o ./publish-output --no-build /p:LP_CI_BUILD_ID=${{ github.run_number }} /p:LP_GIT_COMMIT_SHA=${{ github.sha }} /p:LP_GIT_BRANCH_NAME=${{ env.BRANCH_NAME }}
 
         - name: 7. Upload Build Artifacts
           uses: actions/upload-artifact@v5
           with:
-            name: LaunchPad-Windows-LP_CI_BUILD_ID-${{ github.run_number }}-LP_GIT_COMMIT_SHA-${{ env.SHORT_SHA }}
+            name: LaunchPad-Windows-BRANCH-${{ env.BRANCH_NAME }}-LP_CI_BUILD_ID-${{ github.run_number }}-LP_GIT_COMMIT_SHA-${{ env.SHORT_SHA }}
             path: ./publish-output/

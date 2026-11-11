@@ -1,7 +1,15 @@
 <Project>
   <PropertyGroup>
-    <!-- Mitch - added these global vars so that code version can be tagged with traceability metadata -->
-    <AssemblyVersion>1.0.$(LP_CI_BUILD_ID)</AssemblyVersion>
-    <InformationalVersion>$(LP_GIT_COMMIT_SHA)</InformationalVersion>
+    <!-- Mitch - added these global vars so that code version can be tagged with traceability metadata when using CLI command 'version' -->
+
+    <BuildId>$([MSBuild]::ValueOrDefault('$(LP_CI_BUILD_ID)', '0'))</BuildId>
+    <CommitSha>$([MSBuild]::ValueOrDefault('$(LP_GIT_COMMIT_SHA)', 'SHA'))</CommitSha>
+    <BranchName>$([MSBuild]::ValueOrDefault('$(LP_GIT_BRANCH_NAME)', 'local'))</BranchName>
+
+    <BuildTimestamp>$([System.DateTime]::Now.ToString("yyyy-MM-ddTHH:mm:ssK"))</BuildTimestamp>
+
+    <AssemblyVersion>1.0.$(BuildId)</AssemblyVersion>
+    <InformationalVersion>1.0.$(BuildId)-$(BranchName)+$(CommitSha).$(BuildTimestamp)</InformationalVersion>
+
   </PropertyGroup>
 </Project>

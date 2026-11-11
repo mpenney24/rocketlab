@@ -6,17 +6,17 @@ namespace LaunchPad.Core;
 
 /// <summary>Sends a flight record to the mission control dashboard.</summary>
 public static class MissionControlUploader
+
+    // Mitch - wasn't technically necessary to fix "new WebClient() deprecated" error, but it was the last build warning appearing in the logs 
+    //  and part of a Build Engineer's job is to clean up builds and reduce noise (plus, it was quick)
 {
     // public static string Upload(string url, FlightRecord flight)
     // {
     //     var json = JsonConvert.SerializeObject(flight);
-    //     // Mitch - NEED TO CHANGE THIS?
     //     using var client = new WebClient();
     //     client.Headers[HttpRequestHeader.ContentType] = "application/json";
     //     return client.UploadString(url, json);
     // }
-
-    // Mitch - wasn't necessary to fix this, but was the last build warning appearing in my logs and I wanted them clean! (plus, it was quick)
 
     private static readonly HttpClient httpClient = new();
 

@@ -1,7 +1,9 @@
 # LaunchPad build script (inherited from the previous maintainer)
 # Usage: .\build.ps1 [-Configuration Release]
 
-# Mitch - this file isn't even needed anymore, as it's been replicated in ".github/workflows/ci.yml"
+# Mitch - this file isn't needed anymore, as it's been replicated in ".github/workflows/ci.yml"
+#  ASSUMPTION: the purpose of this assessment was to focus on recreating the dev's process in an automated fashion rather than improve it; improvements can be
+#   properly ticketed/estimated once we have discussed with the team what the next steps are, instead of blindly hacking away at code
 # MITCH - HOW TO GET THIS TO RUN LOCALLY FOR DEVS???
 
 param(
@@ -20,4 +22,6 @@ Set-Location $repo
 
 # publish and drop
 & $dotnet publish src\LaunchPad.Cli\LaunchPad.Cli.csproj -c $Configuration -o "$repo\out"
+# Mitch - we don't have a buildshare network location set up, but GitHub actions places the binaries in retrieval cloud storage automatically
+#  ACTION: severity low, priority low - set up a location where build artifacts will be sent
 Copy-Item "$repo\out\*" $drop -Recurse -Force

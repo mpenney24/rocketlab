@@ -7,7 +7,14 @@ Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 // launchpad --version
 if (args.Contains("--version"))
 {
-    Console.WriteLine(Assembly.GetExecutingAssembly().GetName().Version);
+    // Mitch - slightly updated the "version" command to give more information than just version number (now it includes branchId, commitSha, timestamp) 
+    // Console.WriteLine(Assembly.GetExecutingAssembly().GetName().Version);
+    var assembly = Assembly.GetExecutingAssembly();
+    var infoVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+
+    Console.WriteLine(!string.IsNullOrWhiteSpace(infoVersion) 
+        ? infoVersion 
+        : assembly.GetName().Version);
     return 0;
 }
 
