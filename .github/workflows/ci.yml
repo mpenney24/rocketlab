@@ -20,8 +20,8 @@ jobs:
       # Mitch - ASSUMPTION: LaunchPad is a Windows-based application due to hints left in the code (e.g. "Registry.CurrentUser", "build.ps1" script).
       #  DECISION: also opted against cross-compilation for this very reason
       name: Build & Test on Windows
-      # Mitch - locking down runner version to prevent runner config drift; DETERMINISM
-      runs-on: windows-latest
+      # Mitch - locking down runner version to prevent config drift; DETERMINISM
+      runs-on: windows-2025
 
       # Mitch - creating shortened SHA to inject it (along with branch name, CI build runner id) as metadata into builds/filenames; TRACEABILITY
       steps:
@@ -40,14 +40,14 @@ jobs:
             echo "BRANCH_NAME=$branch" >> $env:GITHUB_ENV
 
         - name: 1. Checkout Code
-          # Mitch - opted for using GitHub Actions plugins to reduce boilterplate code (and make my changes more obvious/workflow more clear)
-          uses: actions/checkout@v5
+          # Mitch - opted for using pinned GitHub Actions plugins to reduce boilterplate code (and make my changes more obvious/workflow more clear); REPEATABILITY
+          uses: actions/checkout@v5.0.0
 
         - name: 2. Set up .NET SDK
-          uses: actions/setup-dotnet@v5
-          # Mitch - locking down SDK version to prevent tool-chain drift; DETERMINISM
+          uses: actions/setup-dotnet@v5.0.0
+          # Mitch - pinned SDK version to prevent tool-chain drift; DETERMINISM
           with:
-            dotnet-version: '10.0.x'
+            dotnet-version: '10.0.102'
 
         - name: 3. Restore Dependencies
           run: dotnet restore LaunchPad.sln
@@ -62,7 +62,7 @@ jobs:
           run: dotnet publish src/LaunchPad.Cli/LaunchPad.Cli.csproj -c Release -o ./publish-output --no-build /p:LP_CI_BUILD_ID=${{ github.run_number }} /p:LP_GIT_COMMIT_SHA=${{ github.sha }} /p:LP_GIT_BRANCH_NAME=${{ env.BRANCH_NAME }}
 
         - name: 7. Upload Build Artifacts
-          uses: actions/upload-artifact@v5
+          uses: actions/upload-artifact@v5.0.0
           with:
             name: LaunchPad-Windows-BRANCH-${{ env.BRANCH_NAME }}-LP_CI_BUILD_ID-${{ github.run_number }}-LP_GIT_COMMIT_SHA-${{ env.SHORT_SHA }}
             path: ./publish-output/
