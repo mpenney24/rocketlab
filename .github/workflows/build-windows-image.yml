@@ -24,8 +24,7 @@ jobs:
       - name: 1. Build and Push Windows Image
         shell: pwsh
         run: |
-          $owner = "${{ github.repository_owner }}".ToLower()
-          $image = "ghcr.io/$owner/rl-win2025-image"
+          $image = "ghcr.io/${{ github.repository_owner }}/rl-win2025-image"
           $shaTag = "${image}:${{ github.sha }}"
           $latestTag = "${image}:latest"
 

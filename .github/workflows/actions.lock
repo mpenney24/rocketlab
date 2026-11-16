@@ -3,11 +3,12 @@
 # Docs: https://gh.io/actions-lockfile
 version: 'v0.0.3'
 workflows:
+    '.github/workflows/build-windows-image.yml':
+        - 'actions/checkout@v7.0.1'
+        - 'docker/login-action@v4.8.0'
     '.github/workflows/ci-docker.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/upload-artifact@v7.0.0'
-        - 'docker/build-push-action@v7.4.0'
-        - 'docker/setup-buildx-action@v4.4.1'
     '.github/workflows/ci.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-dotnet@v6.1.0'
@@ -28,13 +29,8 @@ dependencies:
         commit: 'sha1-bbbca2ddaa5d8feaa63e36b76fdaad77386f024f'
         owner_id: 44036562
         repo_id: 192625955
-    'docker/build-push-action@v7.4.0':
-        ref: 'v7.4.0'
-        commit: 'sha1-c3c9e263c25d99ce0380d002d59b67737d91b0dc'
+    'docker/login-action@v4.8.0':
+        ref: 'v4.8.0'
+        commit: 'sha1-8aa5831fb8d48d8f76594c7ddde61ae58019f550'
         owner_id: 5429470
-        repo_id: 241092383
-    'docker/setup-buildx-action@v4.4.1':
-        ref: 'v4.4.1'
-        commit: 'sha1-f87e5991a6d7451dcb8d9637bfbc97413f497069'
-        owner_id: 5429470
-        repo_id: 288485773
+        repo_id: 287743349

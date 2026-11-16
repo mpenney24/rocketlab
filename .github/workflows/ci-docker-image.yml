@@ -1,0 +1,68 @@
+# Mitch - this version of the ci pipeline is one that uses Docker to build the artifacts AND a Docker image pulled from the GitHub
+#  container repository, proving you can indeed control which version of Microsoft is used (and prevent ~8min image downloads on
+#  every subsequent run) as well as what specific runner
+
+# UPDATE: turns out GitHub Actions requires an enterprise account to self-host a runner. Changing this to "workflow_dispatch" to not 
+#  run on push, but leaving code here to prove the theory (see "runs-on" and "container" sections below)
+
+name: LaunchPad CI - Docker (with determined Windows image)
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+
+on:
+  workflow_dispatch:
+# on:
+#   push:
+#     branches: [ main, master ]
+#   pull_request:
+#     branches: [ main, master ]
+
+jobs:
+    build-and-test:
+      name: Build & Test on Custom Runner - Docker version (with determined image)
+      # Mitch - using custom runner defined in GitHub actions account
+      runs-on: rl-github-runner
+
+      # Mitch - using image pushed as part of new on-execute "build-windows-image.yml" workflow
+      container:
+        image: ghcr.io/${{ github.repository_owner }}/rl-win2025-image:${{ github.sha }}
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.RL_IMAGE_TOKEN }}
+
+      steps:
+        - name: 0. Generate Env Vars
+          shell: pwsh
+          run: |
+            $shortSha = "${{ github.sha }}".Substring(0, 7)
+            echo "SHORT_SHA=$shortSha" >> $env:GITHUB_ENV
+
+        - name: 1. Checkout Code
+          uses: actions/checkout@v7.0.1
+
+        # Mitch - because of Docker, any changes are made in the Dockerfile alone, and this pipeline can likely sit here untouched,
+        #  as it's only purpose is to orchestrate the build; CONTAINERISTATION
+        - name: 2. Build Docker Image
+          run: |
+            docker build `
+              --build-arg LP_CI_BUILD_ID=${{ github.run_number }} `
+              --build-arg LP_GIT_COMMIT_SHA=${{ env.SHORT_SHA }} `
+              --build-arg LP_GIT_BRANCH_NAME=${{ env.BRANCH_NAME }} `
+              -t launchpad-ci-docker:${{ env.BRANCH_NAME }}-${{ github.run_number }}-${{ env.SHORT_SHA }} .
+
+        - name: 3. Extract Binaries from Docker
+          run: |
+            docker create --name temp-ext launchpad-ci-docker:${{ env.BRANCH_NAME }}-${{ github.run_number }}-${{ env.SHORT_SHA }}
+            New-Item -ItemType Directory -Force -Path .\artifacts
+            docker cp temp-ext:/app/out .\artifacts
+            docker rm temp-ext
+
+        - name: 4. Upload Build Artifacts
+          uses: actions/upload-artifact@v7.0.0
+          with:
+            name: LaunchPad-Docker-LP_GIT_BRANCH_NAME-${{ env.BRANCH_NAME }}-LP_CI_BUILD_ID-${{ github.run_number }}-LP_GIT_COMMIT_SHA-${{ env.SHORT_SHA }}
+            path: artifacts/

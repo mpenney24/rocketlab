@@ -36,6 +36,7 @@ jobs:
         #  as it's only purpose is to orchestrate the build; CONTAINERISTATION
         - name: 2. Build Docker Image
           run: |
+            Start-Service docker -ErrorAction SilentlyContinue
             docker build `
               --build-arg LP_CI_BUILD_ID=${{ github.run_number }} `
               --build-arg LP_GIT_COMMIT_SHA=${{ env.SHORT_SHA }} `
