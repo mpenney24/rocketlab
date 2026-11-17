@@ -1,0 +1,73 @@
+# Mitch - this version of the ci pipeline is a newer version adding cryptographic signing, 
+
+# see "ci.yml" for explanations of the boilterplate below
+
+name: LaunchPad CI - v2
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  LP_CI_BUILD_ID: ${{ github.run_number }}
+  LP_GIT_COMMIT_SHA: ${{ github.sha }}
+  LP_GIT_BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    name: Build & Test on Windows - v2
+    runs-on: windows-2025
+    # Mitch - adding in permissions for cryptographic signing
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+
+    steps:
+      - name: 0. Generate Env Vars
+        shell: pwsh
+        run: |
+          $shortSha = "${{ github.sha }}".Substring(0, 7)
+          echo "SHORT_SHA=$shortSha" >> $env:GITHUB_ENV
+
+      - name: 1. Checkout Code
+        uses: actions/checkout@v7.0.1
+
+      - name: 2. Set up .NET SDK
+        uses: actions/setup-dotnet@v6.1.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: LaunchPad.sln
+
+      - name: 3. Restore Dependencies
+        run: dotnet restore LaunchPad.sln
+
+      - name: 4. Build Solution
+        run: dotnet build LaunchPad.sln -c Release --no-restore
+
+      - name: 5. Run Unit Tests
+        run: dotnet test LaunchPad.sln -c Release --no-restore --no-build
+
+      # Mitch - updated to be "--self-contained" so it can run on a Windows machine that doesn't have .NET pre-installed; PORTABILITY
+      #   ALSO: removed "--no-restore --no-build" as we need these to connect to x64 runtime binaries, and the cache in Step 2. makes this quick
+      - name: 6. Publish Release Binaries
+        run: dotnet publish src/LaunchPad.Cli/LaunchPad.Cli.csproj -c Release -r win-x64 --self-contained true -o ./publish-output/bin
+
+      # Mitch - added in cryptographic signing (GitHub actions provides its own plugin for public repos - for private ones, a PowerShell script with
+      #   something like "signtool.exe" would be required); SECURITY
+      - name: 7. Sign Build Artifacts
+        uses: actions/attest-build-provenance@v4.2.2
+        with:
+          subject-path: './publish-output/bin/launchpad.exe'
+
+      - name: 8. Upload Build Artifacts
+        uses: actions/upload-artifact@v7.0.0
+        with:
+          name: LaunchPad-Windows-LP_GIT_BRANCH_NAME-${{ env.LP_GIT_BRANCH_NAME }}-LP_CI_BUILD_ID-${{ github.run_number }}-LP_GIT_COMMIT_SHA-${{ env.SHORT_SHA }}-SIGNED
+          path: ./publish-output/
