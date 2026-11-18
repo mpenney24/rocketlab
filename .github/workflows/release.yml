@@ -1,0 +1,51 @@
+# Mitch - the final piece of the puzzle: creating the release artifact once everything has been proven successful. The project pipelines have now been
+#  completely managed from beginning-to-end, and tagging a branch/commit with v.*.* will now build the artifact automatically
+name: LaunchPad CI - Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  LP_CI_BUILD_ID: ${{ github.run_number }}
+  LP_GIT_COMMIT_SHA: ${{ github.sha }}
+  LP_GIT_BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+
+jobs:
+  release:
+    name: Build, Sign & Publish Release on Windows
+    runs-on: windows-2025
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+
+    steps:
+      - name: 1. Checkout Code
+        uses: actions/checkout@v7.0.1
+
+      - name: 2. Set up .NET SDK
+        uses: actions/setup-dotnet@v6.1.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: LaunchPad.sln
+
+      - name: 3. Build, Test & Publish (via Makefile)
+        run: make all
+
+      - name: 4. Sign Release Executable
+        uses: actions/attest-build-provenance@v4.2.2
+        with:
+          subject-path: './publish-output/bin/launchpad.exe'
+
+      - name: 5. Package Release Archive
+        shell: pwsh
+        run: Compress-Archive -Path ./publish-output/* -DestinationPath LaunchPad-${{ github.ref_name }}-win-x64.zip
+
+      - name: 6. Finalise Release
+        uses: softprops/action-gh-release@v3.0.4
+        with:
+          generate_release_notes: true
+          files: LaunchPad-${{ github.ref_name }}-win-x64.zip

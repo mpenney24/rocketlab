@@ -24,6 +24,11 @@ workflows:
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-dotnet@v6.1.0'
         - 'actions/upload-artifact@v7.0.0'
+    '.github/workflows/release.yml':
+        - 'actions/attest-build-provenance@v4.2.2'
+        - 'actions/checkout@v7.0.1'
+        - 'actions/setup-dotnet@v6.1.0'
+        - 'softprops/action-gh-release@v3.0.4'
 dependencies:
     'actions/attest-build-provenance@v4.2.2':
         ref: 'v4.2.2'
@@ -57,3 +62,8 @@ dependencies:
         commit: 'sha1-8aa5831fb8d48d8f76594c7ddde61ae58019f550'
         owner_id: 5429470
         repo_id: 287743349
+    'softprops/action-gh-release@v3.0.4':
+        ref: 'v3.0.4'
+        commit: 'sha1-8a0cd651e5b2365bd640854a3fa5dfc70e4875f3'
+        owner_id: 2242
+        repo_id: 204253808
