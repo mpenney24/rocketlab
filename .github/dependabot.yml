@@ -1,0 +1,12 @@
+# Mitch - added way of keeping up-to-date with expired dependency packages utilising Ci/CD pipeline features (nice and easy win!)
+version: 2
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

@@ -1,4 +1,4 @@
-# Mitch - this version of the ci pipeline is a newer version adding cryptographic signing, 
+# Mitch - this version of the ci pipeline is a newer version adding cryptographic signing, a Makefile (to remove long and repeating command chains)
 
 # see "ci.yml" for explanations of the boilterplate below
 
@@ -46,18 +46,19 @@ jobs:
           cache-dependency-path: LaunchPad.sln
 
       - name: 3. Restore Dependencies
-        run: dotnet restore LaunchPad.sln
+        run: make restore
 
       - name: 4. Build Solution
-        run: dotnet build LaunchPad.sln -c Release --no-restore
+        run: make build
 
       - name: 5. Run Unit Tests
-        run: dotnet test LaunchPad.sln -c Release --no-restore --no-build
+        run: make test
 
       # Mitch - updated to be "--self-contained" so it can run on a Windows machine that doesn't have .NET pre-installed; PORTABILITY
       #   ALSO: removed "--no-restore --no-build" as we need these to connect to x64 runtime binaries, and the cache in Step 2. makes this quick
+      #   UPDATE: moved into Makefile
       - name: 6. Publish Release Binaries
-        run: dotnet publish src/LaunchPad.Cli/LaunchPad.Cli.csproj -c Release -r win-x64 --self-contained true -o ./publish-output/bin
+        run: make publish
 
       # Mitch - added in cryptographic signing (GitHub actions provides its own plugin for public repos - for private ones, a PowerShell script with
       #   something like "signtool.exe" would be required); SECURITY

@@ -22,6 +22,8 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <!-- 4. guarantees restoration only uses self-contained cached artifacts -->
     <RestorePackagesOffline>true</RestorePackagesOffline>
+    <!-- 5. NEW: makes sure developers can (successfully) run build locally before pushing to CI, as will fail if lock files out of sync -->
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 
     <!-- Mitch - produces identical output binaries based on the source code ONLY, not machine built on, local path on machine, time of day, etc. -->
     <Deterministic>true</Deterministic>
