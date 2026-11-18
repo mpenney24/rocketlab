@@ -80,7 +80,7 @@ jobs:
           run: dotnet publish src/LaunchPad.Cli/LaunchPad.Cli.csproj -c Release -o ./publish-output --no-restore --no-build /p:LP_CI_BUILD_ID=${{ github.run_number }} /p:LP_GIT_COMMIT_SHA=${{ github.sha }} /p:LP_GIT_BRANCH_NAME=${{ env.BRANCH_NAME }}
 
         - name: 7. Upload Build Artifacts
-          uses: actions/upload-artifact@v7.0.0
+          uses: actions/upload-artifact@v7.0.2
           with:
             name: LaunchPad-Windows-LP_GIT_BRANCH_NAME-${{ env.BRANCH_NAME }}-LP_CI_BUILD_ID-${{ github.run_number }}-LP_GIT_COMMIT_SHA-${{ env.SHORT_SHA }}
             path: ./publish-output/
